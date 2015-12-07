@@ -1,0 +1,159 @@
+/*
+ * project.css - a css file to style your portfolio pages
+ */
+ 
+* {
+	margin: 		0px;
+	padding:  		0px;
+	border: 		0px solid red;
+}
+
+body {
+	color: 			white;
+	background-color: 	black;
+	font-family: 		Tahoma, Geneva, sans-serif;
+	width: 			960px;
+	margin: 		0 auto;
+}
+
+a:link { 
+	color: 			white;
+}
+
+a:visited { 
+	color: 			white;
+}
+
+a:active { 
+	color: 			white;
+}
+
+a:hover { 
+	color: 			white;
+}
+
+div.bounding_box {
+	width:			906px;
+	margin:			10px;
+	margin-left:		auto;
+	margin-right:		auto;
+	overflow-x:		hidden;
+	overflow-y:		auto;
+}
+
+div#site_navigation_cell {
+	float:  		left;
+	width: 			256px;
+	text-align: 		center;
+	font-size: 		16px;
+	padding-top: 		6px;
+	padding-bottom: 	6px;
+}
+
+div#title_cell {
+	float:  		left;
+	width: 			648px;
+	font-size: 		28px;
+	padding-top: 		6px;
+	padding-bottom: 	6px;
+	text-align: 		center;
+}
+
+div.gallery_navigation_cell {
+	float: 			left;
+	clear: 			both;
+	width: 			256px;
+	text-align: 		center;
+	font-size: 		16px;
+	padding-top: 		0px;
+	padding-bottom: 	6px;
+}
+
+div.image_nav_box {
+	float: 			left;
+	width: 			648px;
+	text-align:  		center;
+}
+
+div.image_nav_center {
+	display: 		inline-block;
+} 
+
+div.image_nav_left_arrow {
+	float: 			left;
+}
+
+div.image_nav_counts {
+	float: 			left;
+	width: 			120px;
+}
+
+div.image_nav_right_arrow {
+	float: 			left;
+}
+
+div#thumbnail_box {
+	float: 			left;
+	clear:  		both;
+	width: 			256px;
+}
+
+div.thumbnail_cell {
+	float: 			left;
+	width: 			124px;
+	height:  		124px;
+	line-height: 		124px;
+	text-align: 		center;
+}
+
+div.thumbnail_cell:nth-child(odd) {
+	clear: 			left;
+}
+
+div.thumbnail_cell a img { 
+  	border: 		2px solid black; 
+  	display: 		inline;
+  	vertical-align:  	middle;
+} 
+
+div.thumbnail_cell a img:hover { 
+  	border: 		2px solid white; 
+} 
+
+div#small_cell {
+	float: 			left;
+	width: 			648px;
+	height:  		648px;
+	line-height: 		648px;
+	text-align: 		center;
+}
+
+div#small_cell a img {
+  	border: 		2px solid black; 
+  	display: 		inline;
+  	vertical-align:  	middle;
+} 
+
+div#small_cell a img:hover {
+  	border: 		2px solid white; 
+} 
+
+div#caption_cell {
+	float: 			left;
+	width: 			648px;
+	text-align: 		center;
+	font-size: 		24px;
+	padding-top: 		3px;
+	padding-bottom: 	3px;
+}
+
+div#footnote_cell {
+	float: 			left;
+	clear: 			both;
+	width: 			900px;
+	text-align: 		center;
+	font-size: 		12px;
+	font-style: 		italic;
+	padding-top: 		3px;
+	padding-bottom: 	0px;
+}

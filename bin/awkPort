@@ -1,0 +1,58 @@
+#!/usr/bin/awk -f
+# Read a portfolio configuration file and generate macros based upon 
+# portMacros.m4
+#
+# see port.conf for file format skeleton
+# In a nutshell, it is a file with name:value pairs, ":" is the delimeter.
+#
+# usage: awkport -v cssPath="path_to_css_file"
+
+BEGIN { 
+	FS=":" 
+}
+
+/^portfolioTitle/	{
+	portTitle=$2
+	next
+}
+
+/^portfolioAuthor/	{
+	portAuthor=$2
+	printf("HTML_START([[%s]], [[%s]], [[%s]])\n\n", 
+		portAuthor, portTitle, cssPath)
+	printf("BODY_START\n")
+	next
+}
+
+/^portfolioName/	{
+	portName=$2
+	next
+}
+
+/^portfolioDescription/	{
+	portDesc=$2
+	printf("PORTFOLIO_HEADING([[%s]], [[%s]])\n\n", portName, portDesc)
+	next
+}
+/^portfolioNavigation/	{portNav=$2
+	printf("PORTFOLIO_NAV([[%s]])\n\n", portNav)
+	next
+}
+
+/^galleryName/		{	gName=$2; 	next}
+/^galleryDir/		{	gDir=$2; 	next}
+/^galleryPhoto/		{	gPhoto=$2; 	next}
+/^galleryCaption/	{	gCaption=$2; 	next}
+/^galleryUpdate/	{
+	gUpdate=$2;
+	printf("PORTFOLIO_RECORD([[%s]],[[%s]],[[%s]],[[%s]],[[%s]])\n\n",
+		gName, gDir, gPhoto, gCaption, gUpdate)
+	next
+}
+
+/^portfolioFootnote/	{
+	portFoot=$2
+	printf("PORTFOLIO_FOOTNOTE([[%s]])\n\n", portFoot)
+	next
+}
+

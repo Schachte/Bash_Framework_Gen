@@ -1,0 +1,230 @@
+#!/bin/bash -p
+
+#-----------------------------------------------------------------------------
+# genPort
+#
+# Generate a portfolio navigation page.
+# 
+# Usage: genPort siteRootDir portConfDir
+# where:
+#   siteRootDir is the relative directory for the home of your website
+#   portConfDir is the relative directory for the port.conf file
+#
+# /home/you/www/port2 is the absolute root
+# /home/you/www/port2/Daniel_Jacob/ is the absolute path for the port.conf
+# make current directory /home/you/www/port2/Daniel_Jacob and run
+#
+# genPort .. .
+#    will find the root of your website in the parent directory, 
+#    and the port.conf in current directory
+#
+# Dan Mazzola, 12/6/04, version 1.0
+# Dan Mazzola, 04/27/15, version 1.1 convert to bash, use css
+#-----------------------------------------------------------------------------
+
+# see the main function for how these variables are initialized
+siteRootDir=""			# top level website directory
+portConfFile="port.conf"	# basename of default portfolio config file
+portDir="" 			# directory of the portfolio page
+portConfPath=""			# path to portfolio configuration file
+m4File="index.m4"		# basename of m4 output file
+m4out=""			# pathname of m4 output file
+htmlFile="index.html"		# basename of html output file
+htmlout=""			# pathname of html output file
+macrosDir="macros"		# dir of macro definition files
+stylesDir="styles" 		# dir of styles directory
+cssFile="portStyles.css" 	# basename of the css file
+cssPath=""			# pathname of the css file
+
+errorCode=0			# global error code for testing file perms
+HTML_TIDY=~/.tidyrc		# location of tidy configuration
+
+#-----------------------------------------------------------------------------
+# function startm4
+#
+# Called at the start of each page in function genPortPage
+#
+# Have this function echo items to be included in the top of each m4 file
+#-----------------------------------------------------------------------------
+function startm4
+{
+        echo "m4_include(\`${macrosDir}/basicHTMLMacros.m4')"
+        echo "m4_include(\`${macrosDir}/portMacros.m4')"
+}
+
+#-----------------------------------------------------------------------------
+# function endm4
+#
+# Called at the end of each page in function genPortPage
+#
+# Have this function echo items to be included in the bottom of each
+# m4 file
+#-----------------------------------------------------------------------------
+function endm4
+{
+    echo "BODY_END"
+    echo "HTML_END"
+} 
+
+#-----------------------------------------------------------------------------
+# genPortPage
+#
+#-----------------------------------------------------------------------------
+function genPortPage
+{
+	# start generation of page in m4 format saved to $m4out
+	startm4						>  $m4out
+	
+	awkPort -v cssPath=$cssPath $portConfPath 	>> $m4out
+	
+	# write ending m4 code
+	endm4						>> $m4out
+	
+	# display page generation progress
+	echoerr "Generating html page:\t${htmlout}"
+
+	# convert m4 to html and save in $htmlout
+	m4 -P $m4out | tidy > ${htmlout}
+}
+
+#-----------------------------------------------------------------------------
+# testFile
+#
+# Generic file permission testing - if any test fails, generate error
+# message and increment global errorCode value - see testDirs
+#-----------------------------------------------------------------------------
+function testFile
+{
+	scriptName=$(basename $0)
+
+	case $1 in
+
+	-d)	if [ ! -d $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not a directory"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-r)	if [ ! -r $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not readable"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-w)	if [ ! -w $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not writable"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-x)	if [ ! -x $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not searchable"
+			let errorCode=errorCode+1
+		fi
+		;;
+		
+	-f)	if [ ! -f $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not a regular file"
+			let errorCode=errorCode+1
+		fi
+		;;
+		
+	-e)	if [ ! -e $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 does not exist"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	esac
+}
+
+#-----------------------------------------------------------------------------
+# testFiles
+#
+# Collects all of the tests needed to run the script. This sets a global
+# variable errorCode to zero, then runs a sequence of tests. If any
+# test fails, errorCode gets changed to non-zero - see testFile
+#-----------------------------------------------------------------------------
+function testFiles
+{
+	let errorCode=0
+
+	testFile -d ${siteRootDir}
+	testFile -r ${siteRootDir}
+	testFile -x ${siteRootDir}
+	testFile -w ${siteRootDir}
+
+	testFile -d ${portDir}
+	testFile -r ${portDir}
+	testFile -x ${portDir}
+	testFile -w ${portDir}
+
+	testFile -e ${portConfPath}
+	testFile -r ${portConfPath}
+
+	testFile -d ${macrosDir}
+	testFile -r ${macrosDir}
+	testFile -x ${macrosDir}
+	
+	testFile -d ${stylesDir}
+	testFile -r ${stylesDir}
+	testFile -x ${stylesDir}
+	
+	testFile -e ${stylesPath}
+	testFile -r ${stylesPath}
+
+	if [ $errorCode -gt 0 ]
+	then
+		echoerr "$(basename $0): ${errorCode} errors"
+		exit 2
+	fi
+}
+
+#-----------------------------------------------------------------------------
+# Function echoerr:
+#
+# This function prints messages to the standard error
+#-----------------------------------------------------------------------------
+function echoerr
+{
+        echo -e "$*" 1>&2
+}
+
+#-----------------------------------------------------------------------------
+# Function usage -
+# 
+# Shows proper usage of the script
+#-----------------------------------------------------------------------------
+function usage
+{
+	echoerr "Usage: $(basename $0) siteRootDir portConfDir"
+	exit 1
+}
+
+#-----------------------------------------------------------------------------
+# Main Logic
+#-----------------------------------------------------------------------------
+case $# in
+	0)	usage;;
+	1) 	usage;;
+	2)	siteRootDir=$1
+		portDir=$2		
+		portConfPath="${portDir}/${portConfFile}"
+		m4out="${portDir}/${m4File}"
+		htmlout="${portDir}/${htmlFile}"
+		macrosDir="${siteRootDir}/${macrosDir}"
+		stylesDir="${siteRootDir}/${stylesDir}"
+		cssPath="${stylesDir}/${cssFile}"
+
+		testFiles
+		genPortPage
+		;;
+
+	*)	usage;;
+esac

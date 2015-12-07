@@ -1,0 +1,127 @@
+#!/bin/bash -p
+#-----------------------------------------------------------------------------
+# genImages - generates small and thumbnail images from originals
+#
+# usage: genImages smallDir thumbDir
+#
+# Accepts a list of images from picfind or some other means from
+# the standard imput and creates small (640x640 max) images and
+# thumbnails (120x120 max) and stores them in smallDir and thumbDir
+# It uses the convert(1) command from the ImageMagik suite of tools
+#
+# guest3@dmazzola.com:584 picfind ./images/orig 
+# ./images/orig/img_0738.jpg
+# ./images/orig/img_0739.jpg
+# ./images/orig/img_0742.jpg
+# 
+# guest3@dmazzola.com:586 picfind ./images/orig | \
+#			  genImages ./images/small ./images/thumb
+# converted ./images/orig/img_0738.jpg to: ./images/small/img_0738.jpg
+# converted ./images/orig/img_0738.jpg to: ./images/thumb/img_0738.jpg
+# converted ./images/orig/img_0739.jpg to: ./images/small/img_0739.jpg
+# converted ./images/orig/img_0739.jpg to: ./images/thumb/img_0739.jpg
+# converted ./images/orig/img_0742.jpg to: ./images/small/img_0742.jpg
+# converted ./images/orig/img_0742.jpg to: ./images/thumb/img_0742.jpg
+# 
+# guest3@dmazzola.com:587 picfind ./images/orig | \
+# 		  	  genImages ./images/small ./images/thumb
+# 
+# ./images/orig/img_0738.jpg already converted to: ./images/small/img_0738.jpg
+# ./images/orig/img_0738.jpg already converted to: ./images/thumb/img_0738.jpg
+# ./images/orig/img_0739.jpg already converted to: ./images/small/img_0739.jpg
+# ./images/orig/img_0739.jpg already converted to: ./images/thumb/img_0739.jpg
+# ./images/orig/img_0742.jpg already converted to: ./images/small/img_0742.jpg
+# ./images/orig/img_0742.jpg already converted to: ./images/thumb/img_0742.jpg
+#
+# Dan Mazzola - 5/01/04
+# Dan Mazzola - 4/23/14 - Bash and added new features
+#-----------------------------------------------------------------------------
+smallDim="640x640"
+thumbDim="120x120"
+
+#-----------------------------------------------------------------------------
+# Function echoerr:
+#
+# This function prints messages to the standard error
+#-----------------------------------------------------------------------------
+function echoerr
+{
+        echo -e "$*" 1>&2
+}
+
+#-----------------------------------------------------------------------------
+function usage
+{
+        echoerr Error - usage: $(basename $0) smallDir thumbDir
+        exit 2
+}
+
+#-----------------------------------------------------------------------------
+function convert_images
+{
+	smallDir=$1
+	thumbDir=$2
+        while read imageFile
+        do
+                imageName=$(basename $imageFile)
+
+		if [[ $imageFile -ot ${smallDir}/${imageName} ]];
+		then
+			echo ${imageFile} already converted to: \
+				${smallDir}/${imageName}
+			
+		elif [[ $imageFile -nt ${smallDir}/${imageName} ]]; 
+		then
+			convert ${imageFile} -resize ${smallDim} \
+				${smallDir}/${imageName}
+			echo converted ${imageFile} to: \
+				${smallDir}/${imageName}
+		fi
+		
+		if [[ $imageFile -ot ${thumbDir}/${imageName} ]];
+                then
+                        echo ${imageFile} already converted to: \
+                                ${thumbDir}/${imageName}
+
+                elif [[ $imageFile -nt ${thumbDir}/${imageName} ]];
+                then
+
+			convert ${imageFile} -resize ${thumbDim} \
+				${thumbDir}/${imageName}
+
+			echo converted $imageFile to: \
+				${thumbDir}/${imageName}
+		fi
+        done
+}
+
+#-----------------------------------------------------------------------------
+function test_dirs
+{
+	for dir in $*
+	do
+		if [ ! -e $dir ]
+		then
+			mkdir $dir
+		fi
+
+		if [ ! -w $dir ]
+		then
+			# assumes group directory structure setup with acl
+			chmod 2770 $dir
+		fi
+
+	done
+
+	convert_images $*
+}
+
+#-----------------------------------------------------------------------------
+case $# in
+
+        0) usage;;
+        1) usage;;
+        2) test_dirs $1 $2;;
+        *) usage;;
+
+esac

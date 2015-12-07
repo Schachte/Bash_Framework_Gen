@@ -1,0 +1,193 @@
+#!/bin/bash -p
+
+#-----------------------------------------------------------------------------
+# genGal
+#
+#
+# Dan Mazzola, 12/6/04, version 1.0
+# Dan Mazzola, 04/27/15, version 1.1 convert to bash
+#-----------------------------------------------------------------------------
+
+# see the main function for how these variables are initialized
+portDir=""		# stores image root directory
+portConf=""		# location of resulting web
+macros=""		# location of intermediate m4 files
+m4out=""		# location of m4 output
+htmlout=""		# location of resulting html
+
+errorCode=0		# global error code for testing file perms
+HTML_TIDY=~/.tidyrc	# location of tidy configuration
+
+#-----------------------------------------------------------------------------
+# function startm4
+#
+# Called at the start of each page in function genGal
+#
+# Have this function echo items to be included in the top of each m4 file
+#-----------------------------------------------------------------------------
+function startm4
+{
+        echo "m4_include(\`${macros}/basicHTMLMacros.m4')"
+        echo "m4_include(\`${macros}/port2Macros.m4')"
+}
+
+#-----------------------------------------------------------------------------
+# function endm4
+#
+# Called at the end of each page in function genPages
+#
+# Have this function echo items to be included in the bottom of each
+# m4 file
+#-----------------------------------------------------------------------------
+function endm4
+{
+    echo "TABLE_END"
+    echo "HTML_END"
+} 
+
+#-----------------------------------------------------------------------------
+# genGalPage
+#
+#-----------------------------------------------------------------------------
+function genGalPage
+{
+		# start generation of page in m4 format saved to $m4out
+		startm4				>  $m4out
+		
+		awkPort $portConf		>> $m4out
+		
+		# write ending m4 code
+		endm4				>> $m4out
+		
+		# display page generation progress
+		echoerr "Generating html page:\t${htmlout}"
+
+		# convert m4 to html and save in $htmlout
+		m4 -P $m4out | tidy > ${htmlout}
+}
+
+#-----------------------------------------------------------------------------
+# testFile
+#
+# Generic file permission testing - if any test fails, generate error
+# message and increment global errorCode value - see testDirs
+#-----------------------------------------------------------------------------
+function testFile
+{
+	scriptName=$(basename $0)
+
+	case $1 in
+
+	-d)	if [ ! -d $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not a directory"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-r)	if [ ! -r $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not readable"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-w)	if [ ! -w $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not writable"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-x)	if [ ! -x $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not searchable"
+			let errorCode=errorCode+1
+		fi
+		;;
+		
+	-f)	if [ ! -f $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 not a regular file"
+			let errorCode=errorCode+1
+		fi
+		;;
+		
+	-e)	if [ ! -e $2 ] 
+		then
+			echoerr "${scriptName}: Error - $2 does not exist"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	esac
+}
+
+#-----------------------------------------------------------------------------
+# testFiles
+#
+# Collects all of the tests needed to run the script. This sets a global
+# variable errorCode to zero, then runs a sequence of tests. If any
+# test fails, errorCode gets changed to non-zero - see testFile
+#-----------------------------------------------------------------------------
+function testFiles
+{
+	let errorCode=0
+
+	testFile -d ${portDir}
+	testFile -r ${portDir}
+	testFile -x ${portDir}
+	testFile -w ${portDir}
+	
+	testFile -e ${portConf}
+	testFile -r ${portConf}
+
+	testFile -d ${macros}
+	testFile -r ${macros}
+	testFile -x ${macros}
+	
+	if [ $errorCode -gt 0 ]
+	then
+		echoerr "$(basename $0): ${errorCode} errors"
+		exit 2
+	fi
+}
+
+#-----------------------------------------------------------------------------
+# Function echoerr:
+#
+# This function prints messages to the standard error
+#-----------------------------------------------------------------------------
+function echoerr
+{
+        echo -e "$*" 1>&2
+}
+
+#-----------------------------------------------------------------------------
+# Function usage -
+# 
+# Shows proper usage of the script
+#-----------------------------------------------------------------------------
+function usage
+{
+	echoerr "Usage: $(basename $0) portfolio_top_level_dir"
+	exit 1
+}
+
+#-----------------------------------------------------------------------------
+# Main Logic
+#-----------------------------------------------------------------------------
+case $# in
+	0)	usage;;
+	
+	1)	portDir=$1
+		m4out="./index.m4"
+		htmlout="./index.html"
+		portConf="./port.conf"
+		macros="${portDir}/macros"
+		testFiles
+		genGalPage
+		;;
+
+	*)	usage;;
+esac

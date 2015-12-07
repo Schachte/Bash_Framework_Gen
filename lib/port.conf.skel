@@ -1,0 +1,79 @@
+#-----------------------------------------------------------------------------
+# port.conf - skeleton file
+# 
+# version 1.0 12/6/04
+# version 1.1 4/28/15
+# Dan Mazzola
+#
+# To be edited by hand and read by genPort (which calls awkPort)
+# to create index.m4 and index.html which serve as portfolio
+# summary index pages.
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# portfolioTitle: Fill in portfolio title for the web browser header bar
+#-----------------------------------------------------------------------------
+
+portfolioTitle:
+
+#-----------------------------------------------------------------------------
+# portfolioAuthor: Name of web page author
+#-----------------------------------------------------------------------------
+
+portfolioAuthor:
+
+#-----------------------------------------------------------------------------
+# portfolioName: Name of the current portfolio
+#-----------------------------------------------------------------------------
+
+portfolioName:
+
+#-----------------------------------------------------------------------------
+# portfolioDescription: Long text/html/macro description of this portfolio
+#-----------------------------------------------------------------------------
+
+portfolioDescription:<long text description of portfolio>
+
+#-----------------------------------------------------------------------------
+# portfolioNavigation: text/html/macro string that allows navigation
+# up or down the gallery/portfolio chain. Will be different for each
+# level in the chain.
+#
+# At the Top or Home Level:
+# 
+# portfolioNavigation:Home
+#
+# At the second level:
+# 
+# portfolioNavigation:LINK([[Home]], [[../index.html]]) | BASENAME([[$PWD]])
+#-----------------------------------------------------------------------------
+portfolioNavigation:
+
+#-----------------------------------------------------------------------------
+# For each sub-portfolio or gallery, fill in the information for
+# each field:
+#
+# galleryName: Name of the sub-gallery or sub-portfolio
+# galleryDir: relative pathname of the sub-gallery or sub-portfolio
+# galleryPhoto: relative pathname of a representative thumbnail image
+# galleryCaption: Long text/html/macro description of this sub gallery/portfolio
+# galleryUpdate: date of last update
+#-----------------------------------------------------------------------------
+
+galleryName:
+galleryDir:
+galleryPhoto:
+galleryCaption:
+galleryUpdate:
+
+galleryName:
+galleryDir:
+galleryPhoto:
+galleryCaption:
+galleryUpdate:
+
+#-----------------------------------------------------------------------------
+# portfolioFootnote - Standard footnote for all portfolio pages
+#-----------------------------------------------------------------------------
+
+portfolioFootnote:

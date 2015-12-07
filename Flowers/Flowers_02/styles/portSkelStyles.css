@@ -1,0 +1,127 @@
+/*
+ * portSkelStyles.css - ** a css file to style your portfolio Skeleton page only!
+ */
+ 
+* {
+	margin: 		0px;
+	padding:  		0px;
+}
+
+body {
+	color: 			black;
+	background-color: 	white;
+	font-family: 		courier, serif;
+	width: 			960px;
+	margin: 		0 auto;
+	text-align: 		left;
+	font-size: 		24px;
+}
+
+a:link { 
+	color: 			white;
+}
+
+a:visited { 
+	color: 			white;
+}
+
+a:active { 
+	color: 			white;
+}
+
+a:hover { 
+	color: 			white;
+}
+
+div#bounding_box {
+	width:			920px;
+	margin-left:		auto;
+	margin-right:		auto;
+	overflow-x:		hidden;
+	overflow-y:		auto;
+}
+
+div#heading_box {
+	width: 			900px;
+}
+
+div#main_heading {
+	border: 		1px solid black;
+	text-align: 		center;
+	padding: 		8px;
+}
+
+div#sub_heading {
+	border: 		1px solid black;
+	text-align: 		center;
+	padding: 		8px;
+}
+
+div#portfolio_navigation {
+  	border: 		1px solid black; 
+	width: 			882px;
+	text-align: 		left;
+	padding: 		8px;	
+}
+
+div.portfolio_record_box {
+	border: 		2px solid black;
+	width: 			896px;
+	margin-left:		auto;
+	margin-right:		auto;
+	clear: 			both;
+	float: 			left;
+}
+
+div.portfolio_record_thumbnail_box {
+	border: 		1px solid black;
+	width:  		200px;
+	height: 		120px;
+	float: 			left;
+	clear: 			both;
+	padding: 		8px;	
+	text-align: 		left;
+	font-size: 		16px;
+}
+
+div.portfolio_record_thumbnail_box a img { 
+  	border: 		1px solid black; 
+  	display: 		inline;
+  	vertical-align:  	middle;
+} 
+
+div.portfolio_record_thumbnail_box a img:hover { 
+  	border: 		1px solid white; 
+} 
+
+div.portfolio_record_text_box {
+	float: 			left;
+}
+
+div.portfolio_record_main_heading {
+	padding: 		8px;
+  	border: 		1px solid black; 
+  	width: 			660px;
+}
+
+div.portfolio_record_sub_heading {
+	padding: 		8px;
+  	border: 		1px solid black; 
+}
+
+div.portfolio_record_update_stamp {
+	padding: 		8px;
+  	border: 		1px solid black; 
+}
+
+div#portfolio_record_footer_box {
+	width: 			900px;
+	float: 			left;
+	clear: 			both;
+}
+
+div#portfolio_record_footer_text {
+	text-align:  		center;
+  	border: 		1px solid black; 
+}
+

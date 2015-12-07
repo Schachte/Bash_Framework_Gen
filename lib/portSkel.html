@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+
+<HTML>
+<HEAD>
+   <META name="generator"
+         content=
+         "HTML Tidy for Linux (vers 25 March 2009), see www.w3.org">
+   <META content='noindex, nofollow'
+         name='robots'>
+   <META charset='utf-8'>
+   <META name="generator"
+         content="m4">
+   <META name="Author"
+         content="Dan Mazzola">
+   <LINK href="../styles/portSkelStyles.css"
+         rel="stylesheet"
+         type="text/css">
+
+   <TITLE>Portfolio Page Skeleton</TITLE>
+</HEAD>
+
+<BODY>
+   <br>
+   <h1 style="text-align: center;">Portfolio Page Skeleton</h1>
+   <h4 style="text-align: center;">see portMacros.m4 for more details</h4>
+   <br>
+   <DIV id="bounding_box">
+      <DIV id="heading_box">
+         <DIV id="main_heading">
+            PORTFOLIO_HEADING $1
+         </DIV>
+
+         <DIV id="sub_heading">
+            PORTFOLIO_HEADING $2
+         </DIV>
+      </DIV>
+
+      <DIV id="portfolio_navigation">
+         PORTFOLIO_NAV
+      </DIV>
+
+      <DIV class="portfolio_record_box">
+         <DIV class="portfolio_record_thumbnail_box">
+            <BR>LINK_IMAGE(
+               &nbsp;PORTFOLIO_RECORD&nbsp;$2, 
+               &nbsp;PORTFOLIO_RECORD&nbsp;$3
+            )
+
+         </DIV>
+
+         <DIV class="portfolio_record_text_box">
+            <DIV class="portfolio_record_main_heading">
+               PORTFOLIO_RECORD $1
+            </DIV>
+
+            <DIV class="portfolio_record_sub_heading">
+               PORTFOLIO_RECORD $4
+            </DIV>
+
+            <DIV class="portfolio_record_update_stamp">
+               PORTFOLIO_RECORD $5
+            </DIV>
+         </DIV>
+      </DIV>
+
+      <DIV class="portfolio_record_box">
+         <DIV class="portfolio_record_thumbnail_box">
+            <BR>LINK_IMAGE(
+               &nbsp;PORTFOLIO_RECORD&nbsp;$2, 
+               &nbsp;PORTFOLIO_RECORD&nbsp;$3
+            )
+
+         </DIV>
+
+         <DIV class="portfolio_record_text_box">
+            <DIV class="portfolio_record_main_heading">
+               PORTFOLIO_RECORD $1
+            </DIV>
+
+            <DIV class="portfolio_record_sub_heading">
+               PORTFOLIO_RECORD $4
+            </DIV>
+
+            <DIV class="portfolio_record_update_stamp">
+               PORTFOLIO_RECORD $5
+            </DIV>
+         </DIV>
+      </DIV>
+
+
+
+      <DIV id="portfolio_record_footer_box">
+         <DIV id="portfolio_record_footer_text">
+            PORTFOLIO_FOOTENOTE
+         </DIV>
+      </DIV>
+   </DIV><!-- close bounding_box -->
+</BODY>
+</HTML>

@@ -1,0 +1,787 @@
+#!/bin/bash -p
+#-----------------------------------------------------------------------------
+# genPages
+#
+# Tabs set to 8 columns (if using non-vi editor)
+#
+# A script that generates a gallery of related web pages that are
+# used to display images - thumbnails, screen images, and originals
+#
+# Works with the picfind and genImages scripts that create
+# 120x120 pixel max sized thumbnails
+# 640x640 pixel max sized small pictures
+#
+# Also uses custom m4 macros
+#
+# suggested file arrangement
+#
+# ./images/orig/	stores original images
+# ./images/small/	stores small images 640x640 max
+# ./images/thumb/	stores thumbnails images 120x120 max
+# ./styles		locations of css files
+# ./glyph		stores glyphs (arrows, etc)
+# ./etc			stores caption and configuration files
+# ./m4			stores intermdiate m4 files of each web page
+# ./			location of resulting web pages
+#
+# Images can have any name, however, if there is an image named
+#
+#	./images/orig/x.jpg
+#
+# there should be a matching
+#
+#	./images/small/x.jpg
+#	./images/thumb/x.jpg
+#
+# The intermediate m4 files and resulting web pages will be called:
+#
+#	./m4/0000.m4	./0000.html
+#	./m4/0001.m4	./0001.html
+#	./m4/000N.m4	./000N.html
+#
+# There are 5 arguments, the image directory, the glyph directory, an etc dir
+# the m4 directory and the web (html) directory. It is assumed that there is
+# an ${imageDir}/orig, ${imageDir}/small, and ${imageDir}/thumb
+#
+# All directories will be tested for appropriate permissions
+#
+# Usage:
+#
+# 	genPages ./images ./glyph ./etc ./m4 .
+#
+# will look in the places shown above for files
+#
+#
+# Dan Mazzola, 5/1/04, version 1.0
+# Dan Mazzola, 11/28/04, version 2.0
+# Dan Mazzola, 04/21/14, version 3.0 - HTML5 and CSS, no HTML Tables
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Global Variables
+#-----------------------------------------------------------------------------
+MAXTHUMBSPERPAGE=10	# Constant number of thumbnails on standard page
+HTML_TIDY=~/.tidyrc	# location of tidy startup config file
+
+imageDir=""		# stores image directory tree
+glyphDir=""		# store location of glyph images (arrows, etc)
+etcDir=""		# store caption and configuration files
+htmlDir=""		# location of resulting web pages
+m4Dir=""		# location of intermediate m4 files
+orig=""			# holds location or original images
+small=""		# holds location of small images
+thumb=""		# holds location of thumbnail images
+numImages=0		# number of images to process
+numFullGalleries=0	# number galleries full of MAXTHUMBSPERPAGE thumbnails
+numTotalGalleries=0	# number of total pages to generate
+numThumbsLastGallery=0	# number of thumbnails on last page
+numPartGalleries=0	# number of partial filled pages
+errorCode=0		# global error code for testing file perms
+
+declare -a imgArray	# stores image names in an array
+
+#-----------------------------------------------------------------------------
+# function startm4
+#
+# Called at the start of each page in function genPages
+#
+# write m4 macros and constants to start each html page
+#
+##############################################################################
+# MAKE SURE YOU MODIFY THE PATH TO REFLECT YOUR PATHNAMES!
+##############################################################################
+function startm4
+{
+    # include the basic macro definitions
+    echo "m4_include(\`/Users/Schachte/Desktop/hacktheplanet/www/port/macros/basicHTMLMacros.m4')"
+
+    # include the genPages macros - may override macros above
+    echo "m4_include(\`/Users/Schachte/Desktop/hacktheplanet/www/port/macros/genPageMacros.m4')"
+
+    echo "HTML_START([[My Team Name]], [[Photo Gallery Name]])"
+    echo "BODY_START"
+    echo "GALLERY_START"
+}
+
+#-----------------------------------------------------------------------------
+# function endm4
+#
+# Called at the end of each page in function genPages
+#
+# Writes m4 macros to be included in the bottom of each html page
+#-----------------------------------------------------------------------------
+function endm4
+{
+    echo "GALLERY_END"
+    echo "BODY_END"
+    echo "HTML_END"
+}
+
+#-----------------------------------------------------------------------------
+# genPages
+#
+# This is a function that generates an html page for each original image
+# Remember, each original image will have its own page in which it is
+# shown as the small image. Each page will also have MAXTHUMBSPERPAGE
+# of thumbnails. Each of these images will be a link to a page in which
+# that thumbnail is now the small picture. This function generates
+# all of these pages with correct links and images by using custom
+# m4 macros and in particular the PORTFOLIO_PAGE macro whose job
+# it is to place MAXTHUMBSPERPAGE thumbnails in a grid on the left side
+# of the page with a "small" image as the single large image on the page.
+# as well as the remaining cells for navigation, captions, etc.
+#-----------------------------------------------------------------------------
+function genPages
+{
+	let startImage=0
+	let endImage="$startImage + $MAXTHUMBSPERPAGE"
+
+
+	i=0
+	while (( $i < $numImages ))	# Each image will have its own page
+	do				# in which it is the small picture
+		#-------------------------------------------------------------
+		# Generate m4 and html output file names
+		#-------------------------------------------------------------
+		# for each page we are generating, there will be two files
+		# created, a temporary m4 file and the final html page.
+		# these files are named in a number sequence. I have chosen
+		# to name the first images files as 0000.m4 and 0000.html.
+		# The second page willl have files 0001.m4 and 0001.html and
+		# so on.
+		#
+		# i is our loop variable and will be incremented for each image
+		# thus, i will range from 0 to numImages. To convert i to a
+		# four digit format, use printf to format the leading padded
+		# zeros. This will be stored in pageNum, which in turn will
+		# be used to create the m4out and htmlout filenames.
+		#-------------------------------------------------------------
+		pageNum=$(printf "%4.4d" ${i})		# convert 0 to 0000
+							#         1 to 0001
+
+		m4out=${m4Dir}/${pageNum}.m4		# create m4 filename
+		htmlout=${htmlDir}/${pageNum}.html	# create html filename
+
+		# display page generation progress
+		echoerr "Generating m4 page:\t${m4out}"
+
+		#-------------------------------------------------------------
+		# (7) generate data for siteNavigationCell
+		#-------------------------------------------------------------
+		# Do this last -- we will discuss it more in future classes
+		##############################################################
+		# Complete this part of the project by assigning the correct
+		# value to siteNavigationCell. The starting value shown
+		# below simply sets its value to a string so you can see where
+		# is shows up in the final web page.
+		##############################################################
+
+    portfolioDir=$(genNC)
+		siteNavigationCell="Navigate to other albums $portfolioDir"
+
+
+		#-------------------------------------------------------------
+		# (1) generate data for titleCell
+		#-------------------------------------------------------------
+		# This is a simple matter of defining a constant string to
+		# be used as a title to every page on your web site
+		##############################################################
+		# Complete this part of the project by assigning the correct
+		# value to titleCell. The starting value shown
+		# below simply sets its value to a string so you can see where
+		# is shows up in the final web page.
+		##############################################################
+
+		titleCell="HackThePlanet"
+
+		#-------------------------------------------------------------
+		# (3) generate data for the galleryNavigationCell
+		#-------------------------------------------------------------
+		# The galleryNavigationCell is a variable that holds a string
+		# in m4 macro and or pure HTML. The Cell should contain the
+		# HTML code to fullfill this format:
+		#
+		# N Galleries: 1 2 3 4 N
+		#
+		# The "N Galleries:" is a static string. The 1 2 3 4 N will
+		# each be a hyperlink to that gallery. Make sure that the
+		# current gallery is *not* a hyperlink
+		#
+		# There is some simple math required, since you know what
+		# page you are on (the variable i) and you know how many
+		# thumbnails can be on a page (MAXTHUMBSPERPAGE), you should
+		# be able to figure out where you are.
+		#
+		# For example, say there are 19 images in total, and that
+		# MAXTHUMBSPERPAGE is 8. Then there will be 3 galleries, with
+		# with the first gallery starting at 0000.html, the 2nd at
+		# 0008.html, and the last at 0016.html. If this is so, then
+		# the web pages 0000.html through 0007.html will have a value
+		# like this:
+		#
+		# 	3 Galleries: &nbsp;
+		#	1 &nbsp;
+		# 	<a href="./0008.html">2</a> &nbsp;
+		# 	<a href="./0016.html">3</a> &nbsp;
+		#
+		# (remember, "&nbsp;" is html code for a non-breaking space,
+		#  html does not treat spaces literally, so if you want one
+		#  you have to use this code).
+		#
+		# which could be rewritten as:
+		#
+		# 	3 Galleries: &nbsp;
+		#       1 &nbsp;
+		# 	LINK([[2]],[[./0008.html]]) &nbsp;
+		# 	LINK([[3]],[[./0016.html]]) &nbsp;
+		#
+		# all in one long string of course. For pages 0008.html through
+		# 0015.html, and 0016.html through 0018.html, the active
+		# gallery will not be a link and they will look like this:
+		#
+		# 	3 Galleries: &nbsp;
+		#       LINK([[1]],[[./0000.html]]) &nbsp;
+		# 	2 &nbsp;
+		# 	LINK([[3]],[[./0016.html]]) &nbsp;
+		#
+		# 	3 Galleries: &nbsp;
+		#       LINK([[1]],[[./0000.html]]) &nbsp;
+		# 	LINK([[2]],[[./0008.html]]) &nbsp;
+		# 	3 &nbsp;
+		#
+		# Finally, remember that to build a string via concatenation
+		# in bash, use the following model:
+		#
+		# stringVar=""			# start out null
+		# stringVar="bash"		# add a string
+		# stringVar="${stringVar} is"	# add " is" to stringVar
+		# stringVar="${stringVar} great"# add " great" to stringVar
+		# echo $stringVar
+		# bash is great
+		##############################################################
+		# Complete this part of the project by assigning the correct
+		# value to galleryNavigationCell. The starting value shown
+		# below simply sets its value to a string so you can see where
+		# is shows up in the final web page.
+		##############################################################
+		#comehere
+
+
+    #If first conditional, we need to add an additional page
+    if (( ($numImages %  $MAXTHUMBSPERPAGE) > 0 ))
+    then
+      #Add additional page
+      numPages=$(( (numImages / MAXTHUMBSPERPAGE) + 1))
+
+      #Store total number of pages
+      galleryNavigationCell="$numPages Galleries:  "
+
+      #Initial looping index
+      START=1
+
+      #End at the end of the number of pages
+      END=$numPages
+
+      #save $START, just in case if we need it later ##
+      x=$START
+
+      #amount that we need initially before we do math
+      base_page=$(( ((i) / $MAXTHUMBSPERPAGE) + 1 ))
+
+      #Loop through each image
+      while [[ $x -le $END ]]
+      do
+        #if image resides on current page, don't add href, else, add href
+        if [[ $x -eq $base_page ]];
+          then
+            galleryNavigationCell="$galleryNavigationCell $(( base_page ))"
+          else
+            galleryNavigationCell="$galleryNavigationCell <a href="./00"$(( ( x - 1 ) ))"0.html">$(( x ))</a>"
+        fi
+          ((x = x + 1))
+      done
+
+    else
+      #If even divide on thumnails
+      numPages=$(( (numImages / MAXTHUMBSPERPAGE)))
+      galleryNavigationCell="$numPages Galleries:  <a href="./0010.html">2</a>"
+    fi
+
+		#-------------------------------------------------------------
+		# (4) Generate Values for the IMAGE_NAVIGATION_TABLE
+		#-------------------------------------------------------------
+		# The IMAGE_NAVIGATION_TABLE contains the image by image
+		# navigation aids for the user. There are 5 variables that
+		#eneed to have the correct values set for each web page:
+		#
+		# leftArrowURL		stores the URL of the left arrow glyph
+		# prevURL		stores the URL of the previous page
+		# imageStatusString	shows current image number and total
+		# rightArrowURL		stores the URL of the right arrow glyph
+		# nextURL		stores the URL of the next page
+		#
+		# if you use the glyphs for the left and right arrows I have
+		# supplied and you store them in the glyphDir directory,
+		# the values of leftArrowURL and rightArrowURL can be the
+		# constants defined below:
+		#
+		# leftArrowURL=${glyphDir}/left_arrow.gif
+		# rightArrowURL=${glyphDir}/right_arrow.gif
+		#
+		# As to the remaining three, suppose that there are 19 images,
+		# and that the current page is the 13th, or 0012.html, then
+		#
+		# prevURL="${htmlDir}/0011.html"
+		# imageStatusString="13 of 19"
+		# nextURL="${htmlDir}/0013.html"
+		#
+		# When you are on the first web page (0000.html) prevURL should
+		# point to the last page or 0018.html like this:
+		#
+		# prevURL="${htmlDir}/0018.html"
+		# imageStatusString="1 of 19"
+		# nextURL="${htmlDir}/0001.html"
+		#
+		# When you are on the last page (0018), nextURL should point
+		# to the 1st page (0000.html) like this:
+		#
+		# prevURL="${htmlDir}/0017.html"
+		# imageStatusString="19 of 19"
+		# nextURL="${htmlDir}/0000.html"
+		#
+		##############################################################
+		# Complete this part of the project by assigning the correct
+		# values to leftArrowURL, prevURL, imageStatusString,
+		# rightArrowURL, and nextURL. The starting values are just
+		# there to be place holders that you should change as described
+		# above.
+		##############################################################
+
+		leftArrowURL=${glyphDir}/left_arrow.gif
+
+		prevNum=$((i-1))
+		nextNum=$((i+1))
+
+		regPrev=$(printf "%4.4d" ${prevNum}).html
+		regNext=$(printf "%4.4d" ${nextNum}).html
+		first="0000.html"
+		last=$(printf "%4.4d" $((numImages-1))).html
+
+		nextURL="${htmlDir}/${regNext}"
+		prevURL="${htmlDir}/${regPrev}"
+
+		if (( $i == 0))
+		then
+			prevURL="${htmlDir}/${last}"
+		fi
+
+		if (( $i == $(( numImages-1)) ))
+		then
+			nextURL="${htmlDir}/${first}"
+		fi
+
+		imageStatusString="$((i+1)) of $numImages"
+		rightArrowURL=${glyphDir}/right_arrow.gif
+
+		#-------------------------------------------------------------
+		# (6) generate data for captionCell
+		#-------------------------------------------------------------
+		# Each image can have a caption. This caption will written
+		# by the user prior to running this script. As a suggestion,
+		# what if you ran this command prior to running this script:
+		#
+		# picfind ./images/orig | sed 's/$/:/' > ./etc/captions.txt
+		#
+		# the result will be a file called ./etc/captions.txt whose
+		# contents would look like:
+		#
+		# ./images/orig/img_0726.jpg:
+		# ./images/orig/img_0727.jpg:
+		# ./images/orig/img_0729.jpg:
+		# ./images/orig/img_0731.jpg:
+		# ./images/orig/img_0732.jpg:
+		# ./images/orig/img_0733.jpg:
+		# ./images/orig/img_0736.jpg:
+		# ./images/orig/img_0737.jpg:
+		# ./images/orig/img_0738.jpg:
+		# ./images/orig/img_0739.jpg:
+		# ./images/orig/img_0742.jpg:
+		#
+		# What if you were to edit the file with vi and add captions
+		# like this:
+		#
+		# ./images/orig/img_0726.jpg:See Mount Rainer in the distance
+		# ./images/orig/img_0727.jpg:Ocean view of Downtown Seattle
+		# ./images/orig/img_0729.jpg:The banks of Lake Washington
+		#
+		# Then you could do something like:
+		#
+		# awk -F: '$1 ~ /img_0726.jpg/ {print $2}' ./etc/captions.txt
+		#
+		# would output:
+		#
+		# See Mount Rainer in the distance
+		#
+		# -F: sets the ":" as the delimeter
+		# The match $1 ~ /pattern/ will match any line in which
+		# the string /pattern/ is found in the first field
+		#
+		# so, you can use a modified version of the awk command
+		# shown above and use ${imgArray[$]} as the value of the
+		# current image file name being processed.
+		##############################################################
+		# Complete this part of the project by assigning the correct
+		# value to captionCell. The starting value shown
+		# below simply sets its value to a string so you can see where
+		# is shows up in the final web page.
+		##############################################################
+		captionCell="testing"
+		myRegex=${imgArray[$i]}
+		#Strips the first two characters from the filename (./) which we don't want
+		myRegex=${myRegex:2:${#myRegex}}
+		echo $myRegex
+		captionCell=$(awk -F: '$1 ~ /'$myRegex'/ {print $2}' ${htmlDir}/etc/captions.txt)
+
+		#-------------------------------------------------------------
+		# (2) generate data for footnoteCell
+		#-------------------------------------------------------------
+		# This is a simple matter of defining a constant string to
+		# be used as a footnote to every page on your web site
+		##############################################################
+		# Complete this part of the project by assigning the correct
+		# value to footnoteCell. The starting value shown
+		# below simply sets its value to a string so you can see where
+		# is shows up in the final web page.
+		##############################################################
+
+		footnoteCell="Group name should've been TheHashtags"
+
+		#-------------------------------------------------------------
+		# Generate m4 output by filling in all of the pieces of
+		# the PORTFOLIO_PAGE macro
+		#-------------------------------------------------------------
+
+		# start generation of page in m4 format saved to $m4out
+
+		startm4							> $m4out
+
+		# output PORTFOLIIO_PAGE macro and arguments
+		# first two arguments are for the small and orig images
+
+		echo "PORTFOLIO_PAGE("					>>$m4out
+		echo "[[${small}/${imgArray[$i]}]],"			>>$m4out
+		echo "[[${orig}/${imgArray[$i]}]],"			>>$m4out
+
+		# Prepare to output the thumbnail images and links to pages
+		# in which each thumbnail is the small picture
+
+		let "j=startImage"
+		while (( $j < $endImage ))
+		do
+
+			# This loops through all of the thumbnails on the page
+			# and sets up the href to the page where the thumbnail
+			# is the small picture
+
+			if [ "X${imgArray[$j]}" != "X" ]; # if element isnt null
+			then
+				echo "[[${thumb}/${imgArray[$j]}]],"	>>$m4out
+				refPage=$(printf "%4.4d" ${j})
+				echo "[[${htmlDir}/${refPage}.html]],"	>>$m4out
+			else
+
+				#----------------------------------------------
+				# (5) Fix missing thumbnails
+				#----------------------------------------------
+				# If we made it into this section of if/then
+				# we have a partially filled gallery and there
+				# are no more images to put in the THUMB_CELLs
+				#
+				# What is expected here is that there will be
+				# two URLs given, one to a thumbnail image,
+				# and second to the html page to load to see
+				# that image (as shown above in the "then"
+				# section.
+				#
+				# What if you put an image in the glyphDir
+				# that is about 120x120 pixels in size that
+				# displays some idea that there are no more
+				# pictures? You could use that URL to fill
+				# in the broken image. You should have the
+				# URL that will be loaded when this image
+				# is clicked to be the current page - no
+				# need to have it go anywhere else.
+				#
+				# your code should look like:
+				#
+				# echo "[[URL to broken image glyph]],">>$m4out
+				# echo "[[URL to this page]],"         >>$m4out
+				#
+				# Relace the words inside of the "[[ ]]" with
+				# actual variables/constants.
+				###############################################
+				# Complete this part of the project by echoing
+				# glyph URL and URL to the current web page
+				###############################################
+
+				echo "[[${glyphDir}/ryan.jpg]],"	>>$m4out
+				echo "[[$pageNum]],"		>>$m4out
+
+
+
+			fi
+
+			#increment inner loop counter
+			let "j=j+1"
+		done
+		# now fill in the missing pieces of PORTFOLIO_PAGE
+
+		echo "[[${siteNavigationCell}]],"			>>$m4out
+		echo "[[${titleCell}]],"				>>$m4out
+		echo "[[${galleryNavigationCell}]],"			>>$m4out
+		echo "[[${leftArrowURL}]],"				>>$m4out
+		echo "[[${prevURL}]],"					>>$m4out
+		echo "[[${imageStatusString}]],"			>>$m4out
+		echo "[[${rightArrowURL}]],"				>>$m4out
+		echo "[[${nextURL}]],"					>>$m4out
+		echo "[[${galleryNavigationCell}]],"			>>$m4out
+		echo "[[${captionCell}]],"				>>$m4out
+		echo "[[${footnoteCell}]]"				>>$m4out
+
+		# close PORTFOLIO_PAGE macro
+		echo ")"						>>$m4out
+
+		# write ending m4 code
+		endm4							>>$m4out
+
+		# display page generation progress
+		echoerr "Generating html page:\t${htmlout}"
+
+		# convert m4 to html and save in $htmlout
+		m4 -P ${m4out} | tidy > ${htmlout}
+
+		# increment outer loop counter
+		let "i=i+1"
+
+		# calulate the next batch of subscripts into imgArray
+		# for the next set of thumbnails - only occurs everu
+		# MAXTHUMBSPERPAGE pages
+		if (( $i % $MAXTHUMBSPERPAGE == 0 ));
+		then
+			let startImage="$startImage + $MAXTHUMBSPERPAGE"
+			let endImage="$endImage + $MAXTHUMBSPERPAGE"
+		fi
+	done
+
+	# Once all of the pages are generated, leave behind a default
+	# index.html file as a link to 0000.html
+
+	echoerr "linking ${htmlDir}/index.html to ${htmlDir}/0000.html"
+	if [[ ! -e ${htmlDir}/index.html ]]; then
+		ln -s ${htmlDir}/0000.html ${htmlDir}/index.html
+	else
+		rm ${htmlDir}/index.html
+		ln -s ${htmlDir}/0000.html ${htmlDir}/index.html
+	fi
+
+	echoerr "$0 completed with no errors"
+	exit 0
+}
+
+
+#-----------------------------------------------------------------------------
+# calcStatisticcs
+#
+# This function is used to calculate how many thumbnails fit on each
+# page/gallery. Also displays statistics to the standard error
+#-----------------------------------------------------------------------------
+function calcStatistics
+{
+        let "numImages            = ${#imgArray[*]}"
+        let "numFullGalleries     = $numImages / $MAXTHUMBSPERPAGE"
+        let "numThumbsLastGallery = $numImages % $MAXTHUMBSPERPAGE"
+
+        if (( numThumbsLastGallery > 0 ));
+        then
+                let "numTotalGalleries=$numFullGalleries + 1"
+                let numPartGalleries=1
+        else
+                let "numTotalGalleries=$numFullGalleries"
+                let numPartGalleries=0
+        fi
+
+        echoerr "There are $numImages images to process..."
+        echoerr "There are $MAXTHUMBSPERPAGE thumbnails per gallery"
+        echoerr "$numFullGalleries galleries full of thumbnails"
+        echoerr "$numPartGalleries galleries partially full of thumbnails"
+        echoerr "$numThumbsLastGallery thumbnails on the last gallery"
+        echoerr "$numTotalGalleries total galleries to process"
+}
+
+#-----------------------------------------------------------------------------
+# loadImageArray
+#
+# The bash has an array construct
+# The purpose of this function is to create a list of original
+# images and convert them to an array of image path names stored
+# in imgArray[]
+#-----------------------------------------------------------------------------
+function loadImageArray
+{
+	startingDir=$(pwd)
+
+	cd $orig
+
+	i=0
+	for imageFile in $(picfind .)
+	do
+		imgArray[$i]=${imageFile}
+		let i=i+1
+	done
+
+	cd ${startingDir}
+}
+
+#-----------------------------------------------------------------------------
+# testFile
+#
+# Generic file permission testing - if any test fails, generate error
+# message and increment global errorCode value - see testDirs
+#-----------------------------------------------------------------------------
+function testFile
+{
+	scriptName=$(basename $0)
+
+	case $1 in
+
+	-d)	if [ ! -d $2 ];
+		then
+			echoerr "${scriptName}: Error - $2 not a directory"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-r)	if [ ! -r $2 ];
+		then
+			echoerr "${scriptName}: Error - $2 not readable"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-w)	if [ ! -w $2 ];
+		then
+			echoerr "${scriptName}: Error - $2 not writable"
+			let errorCode=errorCode+1
+		fi
+		;;
+
+	-x)	if [ ! -x $2 ];
+		then
+			echoerr "${scriptName}: Error - $2 not searchable"
+			let errorCode=errorCode+1
+		fi
+		;;
+	esac
+}
+
+#-----------------------------------------------------------------------------
+# testDirs
+#
+# Collects all of the tests needed to run the script. This sets a global
+# variable errorCode to zero, then runs a sequence of tests. If any
+# test fails, errorCode gets changed to non-zero - see testFile
+#-----------------------------------------------------------------------------
+function testDirs
+{
+	let errorCode=0
+
+	testFile -d ${imageDir}
+	testFile -r ${imageDir}
+	testFile -x ${imageDir}
+
+	testFile -d ${glyphDir}
+	testFile -r ${glyphDir}
+	testFile -x ${glyphDir}
+
+	testFile -d ${etcDir}
+	testFile -r ${etcDir}
+	testFile -x ${etcDir}
+
+	testFile -d ${htmlDir}
+	testFile -r ${htmlDir}
+	testFile -w ${htmlDir}
+	testFile -x ${htmlDir}
+
+	testFile -d ${orig}
+	testFile -r ${orig}
+	testFile -x ${orig}
+
+	testFile -d ${small}
+	testFile -r ${small}
+	testFile -x ${small}
+
+	testFile -d ${thumb}
+	testFile -r ${thumb}
+	testFile -x ${thumb}
+
+	testFile -d ${m4Dir}
+	testFile -r ${m4Dir}
+	testFile -w ${m4Dir}
+	testFile -x ${m4Dir}
+
+	if [ $errorCode -gt 0 ];
+	then
+		echoerr "$(basename $0): ${errorCode} errors"
+		exit 2
+	fi
+}
+
+#-----------------------------------------------------------------------------
+# Function echoerr:
+#
+# This function prints messages to the standard error
+#-----------------------------------------------------------------------------
+function echoerr
+{
+        echo -e "$*" 1>&2
+}
+
+#-----------------------------------------------------------------------------
+# Function usage -
+#
+# Shows proper usage of the script
+#-----------------------------------------------------------------------------
+function usage
+{
+	echoerr "Usage: $(basename $0) imageDir glyphDir etcDir m4Dir htmlDir"
+	exit 1
+}
+
+#-----------------------------------------------------------------------------
+# Main Logic
+#-----------------------------------------------------------------------------
+case $# in
+	0)	usage;;
+	1)	usage;;
+	2)	usage;;
+	3)	usage;;
+	4)	usage;;
+
+	5)	imageDir=$1
+		glyphDir=$2
+		etcDir=$3
+		m4Dir=$4
+		htmlDir=$5
+
+		orig=${imageDir}/orig
+		small=${imageDir}/small
+		thumb=${imageDir}/thumb
+
+		testDirs
+		loadImageArray
+		calcStatistics
+		genPages
+		;;
+
+	*)	usage;;
+esac

@@ -1,0 +1,71 @@
+#!/bin/bash -p
+#---------------------------------------------------------------------------
+# genNC - generate Navigation Cell data
+#
+# This is a sample methodology for developing the data
+# needed to fill in the navigationCell data in genPages.
+#
+# The idea is this... everywhere that a port.conf file lives,
+# in the upper layers of the portfolio, there is an index.html
+# which serves as a navigation aid to go down the tree.
+# Given that, we can generate the Navigation Cell data by
+# searching up the directory heirarchy.
+#---------------------------------------------------------------------------
+
+##########################################################
+# customize these variables below:
+# webHome is the top level directory for your web site
+# portConfFile the name given to the port.conf file
+##########################################################
+
+webHome="port2"
+portConfFile="port.conf"
+
+# Save the starting working directory - so we can come back!
+startDir=$(pwd)
+
+# Keeps track of the current directories basename
+curDir=""
+
+# used to build the URL's
+URLup="../"
+URLlevel=""
+
+# starting from the current directory (which should be a gallery dir)
+# cd up one level and check for a port.conf file. If found, print
+# the name of the directory and the relative URL to it
+
+while true
+do
+	cd ${URLup}
+	URLlevel="${URLlevel}${URLup}"
+
+	if [[ ! -e $portConfFile ]]
+	then
+
+		# we have gone one level up from our web site - gone too far
+		# return to starting directory and break out of loop
+
+		cd $startDir
+		break
+	else
+
+		curDir=$(basename $(pwd))
+
+		# test if we are at the top of the website, and substitute
+		# the string "Home" for the name of it
+
+		if [[ $curDir == $webHome ]]
+		then
+			curDir=Home
+		fi
+
+		for f in *; do
+		    if [[ -d $f ]]; then
+		        printf "\n<a href=\"../$f/index.html\">$f</a>  "
+		    fi
+		done
+		break
+
+	fi
+done

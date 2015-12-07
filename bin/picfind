@@ -1,0 +1,103 @@
+#!/bin/bash -p
+
+#-----------------------------------------------------------------------------
+# picfind
+#
+# This is a bash script designed to generate a list of graphics image files
+# found in directories specified in the command line arguments. It can
+# be used as a filename generator for the tools like pic2html.
+#
+# Usage: picfind dir [dir ...]
+#
+# Returns:
+# 
+# 	0 - no errors occurred
+#	1 - usage errors
+#
+# Author:
+#
+#	Dan Mazzola, verision 1.0 - 4/10/04
+#	Dan Mazzola, verision 2.0 - 4/10/14 - convert to bash, use find(1)
+#-----------------------------------------------------------------------------
+
+#-----------------------------------------------------------------------------
+# Function echoerr:
+#
+# This function prints messages to the standard error
+#-----------------------------------------------------------------------------
+function echoerr
+{
+        echo -e "$*" 1>&2
+}
+
+#-----------------------------------------------------------------------------
+# Function usage
+#
+# Show command usage to standard error and exit with return code 1
+#-----------------------------------------------------------------------------
+
+function usage
+{
+	echoerr "Usage: $(basename $0) directory_list"
+	echoerr "generates a sorted list of image files found" 
+	echoerr "in the directory_list"
+	exit 1
+}
+
+#-----------------------------------------------------------------------------
+# function parse_dirs
+#
+# Check each argument and test if it is a directory, that is is readable
+# and can be searched. If each argument does not pass this test, show
+# an error message to the standard error and show the usage
+#
+# Otherwise, call function gen_list and generate the list of matching files
+#-----------------------------------------------------------------------------
+function parse_dirs
+{
+
+	for dir in $*
+	do
+		if [[ ! -d $dir || ! -r $dir || ! -x $dir ]];
+		then
+			echoerr "Error, directory $dir inaccessible"
+			usage
+		fi
+	done
+	gen_list $*
+}
+
+#-----------------------------------------------------------------------------
+# function gen_list
+#
+# Search each directory for matching file extensions and echo them one per line
+# The eval(1) command is used to expand the variables before running the ls(1)
+# command. Errors are discarded (i.e. no file found)
+#-----------------------------------------------------------------------------
+function gen_list
+{
+	for dir in $*
+	do
+		find ${dir}			\
+			   -iname \*jpg		\
+			-o -iname \*jpeg	\
+			-o -iname \*png		\
+			-o -iname \*gif		\
+			-o -iname \*bmp		
+		
+	done | sort 
+	exit 0
+}
+
+#-----------------------------------------------------------------------------
+# Main loop
+#
+# Check the command line arguments, if there are none, show usage
+# otherwise, parse arguments as directory names
+#-----------------------------------------------------------------------------
+case $# in
+
+	0) usage;;
+	*) parse_dirs $*;;
+esac
+
